@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dohnert Family Academic Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f7fa;color:#1a202c}
+.header{background:#1e3a5f;color:white;padding:20px 32px}
+.header h1{font-size:1.4rem;font-weight:700}
+.header p{font-size:0.8rem;opacity:.75;margin-top:3px}
+.kids-bar{background:white;border-bottom:1px solid #e2e8f0;padding:12px 32px;display:flex;gap:16px;align-items:center}
+.kid-pill{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:20px;font-size:.85rem}
+.kid-pill.j{background:#eff6ff;border:1.5px solid #3b82f6}
+.kid-pill.e{background:#f0fdf4;border:1.5px solid #22c55e}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dot.j{background:#3b82f6}.dot.e{background:#22c55e}
+.kid-pill strong{font-weight:600}.kid-pill span{color:#64748b;font-size:.78rem;margin-left:4px}
+.nav{background:white;border-bottom:2px solid #e2e8f0;padding:0 32px;display:flex;overflow-x:auto}
+.nav button{padding:12px 18px;border:none;background:none;cursor:pointer;font-size:.85rem;color:#64748b;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;font-weight:500}
+.nav button:hover{color:#1e3a5f}
+.nav button.active{color:#1e3a5f;border-bottom-color:#1e3a5f;font-weight:700}
+main{padding:28px 32px;max-width:1100px;margin:0 auto}
+.tab{display:none}.tab.active{display:block}
+.cards4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.cards2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+.card{background:white;border-radius:10px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.07);border:1px solid #e2e8f0}
+.card-title{font-size:.72rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.card-big{font-size:2.2rem;font-weight:700;line-height:1}
+.card-sub{font-size:.78rem;color:#64748b;margin-top:5px}
+.card-label{font-size:.85rem;font-weight:600;margin-bottom:12px}
+.jc{color:#3b82f6}.ec{color:#22c55e}
+.cw{position:relative;height:280px}
+.cw-lg{position:relative;height:350px}
+.cw-sm{position:relative;height:220px}
+.sec-head{margin-bottom:20px}
+.sec-head h2{font-size:1.1rem;font-weight:700}
+.sec-head p{font-size:.83rem;color:#64748b;margin-top:3px}
+.legend{display:flex;gap:20px;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:#555}
+.legend-line{width:20px;height:3px;border-radius:2px}
+.toggle-row{display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.toggle-row label{font-size:.8rem;color:#64748b;font-weight:500}
+.mbtn{padding:5px 12px;border:1.5px solid #e2e8f0;border-radius:20px;background:white;font-size:.78rem;cursor:pointer;color:#64748b;transition:all .15s}
+.mbtn.active{background:#1e3a5f;color:white;border-color:#1e3a5f}
+.comment{background:#f8fafc;border-left:4px solid #e2e8f0;padding:12px 14px;border-radius:0 6px 6px 0;font-size:.82rem;color:#475569;line-height:1.6;margin-bottom:10px}
+.comment.j{border-left-color:#3b82f6}.comment.e{border-left-color:#22c55e}
+.comment-who{font-weight:600;font-size:.74rem;color:#94a3b8;margin-bottom:4px}
+.nys-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:480px;margin:0 auto 28px}
+.nys-box{text-align:center;padding:28px 20px;border-radius:12px}
+.nys-box.ela{background:linear-gradient(135deg,#eff6ff,#dbeafe)}
+.nys-box.math{background:linear-gradient(135deg,#f0fdf4,#dcfce7)}
+.nys-subject{font-size:.85rem;font-weight:600;color:#475569;margin-bottom:8px}
+.nys-num{font-size:3.2rem;font-weight:700;color:#1e3a5f;line-height:1}
+.nys-level{font-size:.78rem;color:#64748b;margin-top:8px}
+.subj-row{margin-bottom:12px}
+.subj-hdr{display:flex;justify-content:space-between;margin-bottom:4px}
+.subj-name{font-size:.82rem;color:#374151;font-weight:500}
+.subj-scores{font-size:.78rem;color:#64748b}
+.bar-track{height:8px;background:#f1f5f9;border-radius:4px;position:relative;overflow:hidden}
+.bar-m1{height:100%;border-radius:4px;position:absolute;top:0;left:0;transition:width .4s}
+.bar-m2{height:100%;border-radius:4px;position:absolute;top:0;left:0;transition:width .4s;opacity:.7}
+.divider{height:1px;background:#e2e8f0;margin:24px 0}
+tbl{width:100%;border-collapse:collapse}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:8px}
+.doc-card{display:flex;align-items:center;gap:12px;padding:14px 16px;background:white;border:1px solid #e2e8f0;border-radius:10px;text-decoration:none;color:#1a202c;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:box-shadow .15s,border-color .15s}
+.doc-card:hover{box-shadow:0 3px 8px rgba(0,0,0,.1);border-color:#cbd5e1}
+.doc-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.doc-icon.j{background:#eff6ff}.doc-icon.e{background:#f0fdf4}
+.doc-meta{min-width:0}
+.doc-name{font-size:.83rem;font-weight:600;color:#1e3a5f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-period{font-size:.74rem;color:#94a3b8;margin-top:2px}
+/* ── RESPONSIVE ────────────────────────────────────────────────────── */
+@media(max-width:768px){
+  .header{padding:16px 16px}
+  .header h1{font-size:1.15rem}
+  .kids-bar{padding:10px 16px;gap:10px;flex-wrap:wrap}
+  .nav{padding:0 8px}
+  .nav button{padding:10px 12px;font-size:.8rem}
+  main{padding:16px}
+  .cards4{grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  .cards2{grid-template-columns:1fr;gap:16px;margin-bottom:16px}
+  .card{padding:16px}
+  .cw{height:220px}
+  .cw-lg{height:260px}
+  .cw-sm{height:180px}
+  .nys-grid{max-width:100%;gap:12px}
+  .nys-num{font-size:2.4rem}
+  .sec-head{margin-bottom:14px}
+  .sec-head h2{font-size:1rem}
+  .card-big{font-size:1.8rem}
+}
+@media(max-width:480px){
+  .header h1{font-size:1rem}
+  .header p{font-size:.72rem}
+  .kid-pill{font-size:.78rem;padding:5px 10px}
+  .nav button{padding:9px 10px;font-size:.75rem}
+  .cards4{grid-template-columns:1fr 1fr;gap:10px}
+  .cards2{grid-template-columns:1fr;gap:12px}
+  .card{padding:14px}
+  .card-big{font-size:1.6rem}
+  .cw{height:190px}
+  .cw-lg{height:220px}
+  .cw-sm{height:160px}
+  .toggle-row{gap:6px}
+  .mbtn{padding:4px 10px;font-size:.74rem}
+  .nys-num{font-size:2rem}
+  .nys-box{padding:20px 14px}
+  .legend{gap:12px;flex-wrap:wrap}
+  .sec-head h2{font-size:.95rem}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Dohnert Family Academic Dashboard</h1>
+  <p>William B Ward Elementary School &nbsp;·&nbsp; 2025–2026 School Year &nbsp;·&nbsp; Updated March 2026</p>
+</div>
+
+<div class="kids-bar">
+  <div class="kid-pill j"><div class="dot j"></div><strong>Justin Andres</strong><span>Grade 4</span></div>
+  <div class="kid-pill e"><div class="dot e"></div><strong>Ethan Joseph</strong><span>Grade 2</span></div>
+</div>
+
+<nav class="nav">
+  <button class="active" onclick="showTab(this,'overview')">Overview</button>
+  <button onclick="showTab(this,'reading')">STAR Reading</button>
+  <button onclick="showTab(this,'math')">STAR Math</button>
+  <button onclick="showTab(this,'reportcard')">Report Cards</button>
+  <button onclick="showTab(this,'nys')">NYS Test</button>
+</nav>
+
+<main>
+
+<!-- OVERVIEW -->
+<div id="overview" class="tab active">
+  <div class="sec-head"><h2>At a Glance</h2><p>Current STAR scores — Winter 2026 assessments</p></div>
+  <div class="cards4">
+    <div class="card">
+      <div class="card-title">Justin · Reading</div>
+      <div class="card-big jc">82<sup style="font-size:1rem">nd</sup></div>
+      <div class="card-sub">Percentile Rank</div>
+      <div class="card-sub">Scale: 1057 &nbsp;·&nbsp; GE: 6.7</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Justin · Math</div>
+      <div class="card-big jc">90<sup style="font-size:1rem">th</sup></div>
+      <div class="card-sub">Percentile Rank</div>
+      <div class="card-sub">Scale: 1066 &nbsp;·&nbsp; GE: 6.9</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Ethan · Reading</div>
+      <div class="card-big ec">97<sup style="font-size:1rem">th</sup></div>
+      <div class="card-sub">Percentile Rank</div>
+      <div class="card-sub">Scale: 1034 &nbsp;·&nbsp; GE: 5.5</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Ethan · Math</div>
+      <div class="card-big ec">95<sup style="font-size:1rem">th</sup></div>
+      <div class="card-sub">Percentile Rank</div>
+      <div class="card-sub">Scale: 984 &nbsp;·&nbsp; GE: 4.2</div>
+    </div>
+  </div>
+
+  <div class="cards2">
+    <div class="card">
+      <div class="card-title">Reading Percentile — All Years</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-line" style="background:#3b82f6"></div>Justin</div>
+        <div class="legend-item"><div class="legend-line" style="background:#22c55e"></div>Ethan</div>
+      </div>
+      <div class="cw-sm"><canvas id="ovReadChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Math Percentile — All Years</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-line" style="background:#3b82f6"></div>Justin</div>
+        <div class="legend-item"><div class="legend-line" style="background:#22c55e"></div>Ethan</div>
+      </div>
+      <div class="cw-sm"><canvas id="ovMathChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="cards2">
+    <div class="card">
+      <div class="card-label jc">Justin — Teacher Comments · March 2026</div>
+      <div class="comment j">
+        <div class="comment-who">Mrs. Rolon · ELA &amp; Math</div>
+        Justin continues to come to school prepared and ready to meet the expectations of fourth grade. He is progressing nicely and shows achievement across all subject areas. He does a great job responding to literature. He reads closely to determine what the text says explicitly and makes logical inferences or conclusions from it. He demonstrates an understanding of the mathematical concepts. He works collaboratively and strives to do his best. Keep up the good work! ~Mrs. Rolon
+      </div>
+      <div class="comment j">
+        <div class="comment-who">Mr. Bisaria · Science</div>
+        In Dual Language Science, he continues to show great enthusiasm and progress in classroom assignments, projects, and assessments. I'm very proud of him. AB
+      </div>
+      <div class="comment j">
+        <div class="comment-who">Ms. Oceguera · Social Studies</div>
+        Justin continues to make progress and participates in classroom activities in social studies. -Ms. Oceguera
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label ec">Ethan — Teacher Comments</div>
+      <div class="toggle-row" style="margin-bottom:14px">
+        <button class="mbtn active" onclick="setEComments(this,'m2')">March 2026</button>
+        <button class="mbtn" onclick="setEComments(this,'m1')">December 2025</button>
+      </div>
+      <div id="eComments-m2">
+        <div class="comment e">
+          <div class="comment-who">Ms. Bynum · Homeroom</div>
+          In reading Ethan's fluency is above grade level. He reads with 92% accuracy. In writing he is able to identify a nonfiction topic to write a chapter book using nonfiction text features. He uses punctuation and capitalization routinely. In math Ethan is able to use some strategies to solve addition and subtraction equations. Please refer to the Winter 2nd Grade handout, STAR, Reflex and Lexia data results for more information about specific goals and progress. Ethan continues to make progress in class.
+        </div>
+      </div>
+      <div id="eComments-m1" style="display:none">
+        <div class="comment e">
+          <div class="comment-who">Ms. Bynum · Homeroom</div>
+          In reading Ethan's fluency is above grade level. He reads with 97% accuracy. In writing he is able to identify a topic to write a personal narrative story. He uses punctuation and capitalization. In math Ethan is working on building fluency in addition and subtraction. Please refer to the handouts (Lexia, Reflex, STAR) provided during parent teacher conferences to gain more specific information about his progress. Ethan is a pleasure to have in class.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STAR READING -->
+<div id="reading" class="tab">
+  <div class="sec-head"><h2>STAR Reading — Score Trends</h2><p>All reading assessments since kindergarten, aligned by grade level</p></div>
+  <div class="toggle-row">
+    <label>Metric:</label>
+    <button class="mbtn active" onclick="setReadMetric(this,'scale')">Scale Score</button>
+    <button class="mbtn" onclick="setReadMetric(this,'pct')">Percentile Rank</button>
+    <button class="mbtn" onclick="setReadMetric(this,'ge')">Grade Equivalent</button>
+  </div>
+  <div class="card" style="margin-bottom:24px">
+    <div class="legend">
+      <div class="legend-item"><div class="legend-line" style="background:#3b82f6"></div>Justin (Gr 4)</div>
+      <div class="legend-item"><div class="legend-line" style="background:#22c55e"></div>Ethan (Gr 2)</div>
+    </div>
+    <div class="cw-lg"><canvas id="readChart"></canvas></div>
+  </div>
+  <div class="cards2">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">Justin — Reading History</div>
+      <div id="jReadTable"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">Ethan — Reading History</div>
+      <div id="eReadTable"></div>
+    </div>
+  </div>
+</div>
+
+<!-- STAR MATH -->
+<div id="math" class="tab">
+  <div class="sec-head"><h2>STAR Math — Score Trends</h2><p>All math assessments since first grade, aligned by grade level</p></div>
+  <div class="toggle-row">
+    <label>Metric:</label>
+    <button class="mbtn active" onclick="setMathMetric(this,'scale')">Scale Score</button>
+    <button class="mbtn" onclick="setMathMetric(this,'pct')">Percentile Rank</button>
+    <button class="mbtn" onclick="setMathMetric(this,'ge')">Grade Equivalent</button>
+  </div>
+  <div class="card" style="margin-bottom:24px">
+    <div class="legend">
+      <div class="legend-item"><div class="legend-line" style="background:#3b82f6"></div>Justin (Gr 4)</div>
+      <div class="legend-item"><div class="legend-line" style="background:#22c55e"></div>Ethan (Gr 2)</div>
+    </div>
+    <div class="cw-lg"><canvas id="mathChart"></canvas></div>
+  </div>
+  <div class="cards2">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">Justin — Math History</div>
+      <div id="jMathTable"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">Ethan — Math History</div>
+      <div id="eMathTable"></div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT CARDS -->
+<div id="reportcard" class="tab">
+  <div class="sec-head"><h2>Report Card — Subject Grades</h2><p>Average marks per subject. Scale: 1 (Difficulty) · 2 (Developing) · 3 (Steady Progress) · 4 (Consistently). Dec vs. March.</p></div>
+  <div class="cards2">
+    <div class="card">
+      <div class="card-label jc">Justin · Grade 4</div>
+      <div class="cw"><canvas id="jRCChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-label ec">Ethan · Grade 2</div>
+      <div class="cw"><canvas id="eRCChart"></canvas></div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="cards2">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">Justin — Dec → March Progress</div>
+      <div id="jRCDetail"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">Ethan — Dec → March Progress</div>
+      <div id="eRCDetail"></div>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="sec-head"><h2>Report Card Documents</h2><p>Click to download the original report card PDFs</p></div>
+  <div id="rcDocs"></div>
+</div>
+
+<!-- NYS -->
+<div id="nys" class="tab">
+  <div class="sec-head"><h2>NYS Grade 3 Assessment — Justin</h2><p>New York State standardized tests, Spring 2025. Ethan will take these in Grade 3.</p></div>
+  <div class="nys-grid">
+    <div class="nys-box ela">
+      <div class="nys-subject">ELA</div>
+      <div class="nys-num">454</div>
+      <div class="nys-level">Assessment Score</div>
+      <div class="nys-level" style="margin-top:6px;font-weight:600;color:#1e3a5f">Level 3 · Meets Standards</div>
+    </div>
+    <div class="nys-box math">
+      <div class="nys-subject">Mathematics</div>
+      <div class="nys-num">482</div>
+      <div class="nys-level">Assessment Score</div>
+      <div class="nys-level" style="margin-top:6px;font-weight:600;color:#1e3a5f">Level 3 · Meets Standards</div>
+    </div>
+  </div>
+  <div class="card" style="max-width:580px;margin:0 auto">
+    <div class="card-title" style="margin-bottom:14px">Score in Context — NYS Grade 3 Level Bands</div>
+    <div class="cw-sm"><canvas id="nysChart"></canvas></div>
+    <div style="font-size:.74rem;color:#94a3b8;margin-top:10px;line-height:1.6">
+      Approximate NYS Grade 3 cut scores: Level 1 (&lt;400) · Level 2 (400–427) · Level 3 (428–466) · Level 4 (&gt;466)
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+const GL = ["K-Fall","K-Win","K-Spr","1-Fall","1-Win","1-Spr","2-Fall","2-Win","2-Spr","3-Fall","3-Win","3-Spr","4-Fall","4-Win"];
+
+// Justin Reading (all 14 data points)
+const jR = [
+  {scale:502, pct:34,  ge:0},
+  {scale:687, pct:79,  ge:1},
+  {scale:815, pct:94,  ge:2.3},
+  {scale:774, pct:84,  ge:1.7},
+  {scale:836, pct:66,  ge:1.6},
+  {scale:868, pct:63,  ge:2},
+  {scale:949, pct:80,  ge:3.1},
+  {scale:944, pct:67,  ge:3.1},
+  {scale:1001,pct:85,  ge:4.1},
+  {scale:1044,pct:94,  ge:6},
+  {scale:1030,pct:86,  ge:5.4},
+  {scale:1038,pct:82,  ge:5.7},
+  {scale:1045,pct:82,  ge:6},
+  {scale:1057,pct:82,  ge:6.7}
+];
+
+// Ethan Reading (K-Fall=idx0 … 2-Win=idx7)
+const eR = [
+  {idx:0, scale:764, pct:86, ge:0.8},
+  {idx:1, scale:841, pct:81, ge:1.7},
+  {idx:2, scale:867, pct:90, ge:2},
+  {idx:3, scale:898, pct:93, ge:2.5},
+  {idx:4, scale:950, pct:95, ge:3.3},
+  {idx:5, scale:982, pct:94, ge:3.9},
+  {idx:6, scale:954, pct:83, ge:3.4},
+  {idx:7, scale:1034,pct:97, ge:5.5}
+];
+
+// Justin Math (sparse, by grade-label index)
+const jM = [
+  {idx:3, scale:377, pct:87, ge:1.8},
+  {idx:4, scale:857, pct:81, ge:2},
+  {idx:5, scale:901, pct:85, ge:2.7},
+  {idx:6, scale:935, pct:92, ge:3.3},
+  {idx:7, scale:999, pct:98, ge:4.6},
+  {idx:8, scale:903, pct:82, ge:3.6},
+  {idx:9, scale:972, pct:93, ge:5.8},
+  {idx:10,scale:1024,pct:93, ge:5.2},
+  {idx:11,scale:1052,pct:93, ge:6.1},
+  {idx:12,scale:1041,pct:90, ge:5.8},
+  {idx:13,scale:1066,pct:90, ge:6.9}
+];
+
+// Ethan Math
+const eM = [
+  {idx:3, scale:874, pct:93, ge:2.1},
+  {idx:4, scale:906, pct:93, ge:2.7},
+  {idx:5, scale:907, pct:83, ge:2.7},
+  {idx:6, scale:936, pct:91, ge:3.2},
+  {idx:7, scale:984, pct:95, ge:4.2}
+];
+
+function sparseToFull(sparse, len=14) {
+  const a = Array(len).fill(null);
+  sparse.forEach(d => { a[d.idx] = d; });
+  return a;
+}
+
+function getM(arr, metric) { return arr.map(d => d ? d[metric] : null); }
+
+const jRF = jR; // already full length 14
+const eRF = sparseToFull(eR);
+const jMF = sparseToFull(jM);
+const eMF = sparseToFull(eM);
+
+// Report card averages (M1=Dec, M2=Mar)
+const rcSubs = ["Social Dev","Study Skills","Reading","Writing","Math","Science","Soc. Studies","Art","Music"];
+const jRC = {
+  m1: [3.57, 3.44, 3.29, 3.0, 3.50, 3.0, 3.0, 4.0, 3.25],
+  m2: [3.71, 4.0,  3.57, 3.75, 3.78, 3.67, 3.50, 4.0, 4.0]
+};
+const eRC = {
+  m1: [3.0,  3.0,  3.0,  3.0, 3.40, 3.0, 3.0, 4.0, 3.25],
+  m2: [3.25, 3.13, 3.40, 3.29, 3.43, 3.0, 3.0, 4.0, 4.0]
+};
+
+// ── CHART DEFAULTS ─────────────────────────────────────────────────────
+const baseOpts = (yLabel, yMin, yMax) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: { mode: 'index', intersect: false }
+  },
+  scales: {
+    x: { ticks: { font:{size:9}, maxRotation:45 }, grid:{display:false} },
+    y: {
+      min: yMin, max: yMax,
+      ticks: { font:{size:10} },
+      grid: { color:'#f1f5f9' },
+      title: { display:!!yLabel, text:yLabel, font:{size:10} }
+    }
+  },
+  elements: { point:{radius:4,hoverRadius:6}, line:{tension:.3,borderWidth:2} }
+});
+
+const J = '#3b82f6', E = '#22c55e';
+const JF = 'rgba(59,130,246,0.08)', EF = 'rgba(34,197,94,0.08)';
+
+function lineDS(label, data, color, fill=true) {
+  return { label, data, borderColor:color, backgroundColor:fill?color.replace(')',',0.08)').replace('rgb','rgba'):undefined, fill, spanGaps:false };
+}
+
+// ── OVERVIEW CHARTS ─────────────────────────────────────────────────────
+new Chart(document.getElementById('ovReadChart'), {
+  type:'line',
+  data:{ labels:GL, datasets:[
+    { label:'Justin', data:jRF.map(d=>d.pct), borderColor:J, backgroundColor:JF, fill:true, spanGaps:false, borderWidth:2, pointRadius:3 },
+    { label:'Ethan',  data:getM(eRF,'pct'),   borderColor:E, backgroundColor:EF, fill:true, spanGaps:false, borderWidth:2, pointRadius:3 }
+  ]},
+  options: baseOpts('Percentile',0,100)
+});
+
+new Chart(document.getElementById('ovMathChart'), {
+  type:'line',
+  data:{ labels:GL, datasets:[
+    { label:'Justin', data:getM(jMF,'pct'), borderColor:J, backgroundColor:JF, fill:true, spanGaps:false, borderWidth:2, pointRadius:3 },
+    { label:'Ethan',  data:getM(eMF,'pct'), borderColor:E, backgroundColor:EF, fill:true, spanGaps:false, borderWidth:2, pointRadius:3 }
+  ]},
+  options: baseOpts('Percentile',0,100)
+});
+
+// ── STAR READING MAIN CHART ─────────────────────────────────────────────
+let readChart;
+function buildRead(metric) {
+  const yL = {scale:'Scale Score',pct:'Percentile Rank',ge:'Grade Equivalent'}[metric];
+  const [mn,mx] = metric==='pct' ? [0,100] : [undefined,undefined];
+  if (readChart) readChart.destroy();
+  readChart = new Chart(document.getElementById('readChart'), {
+    type:'line',
+    data:{ labels:GL, datasets:[
+      { label:'Justin', data:jRF.map(d=>d[metric]), borderColor:J, backgroundColor:JF, fill:true, spanGaps:false, borderWidth:2.5 },
+      { label:'Ethan',  data:getM(eRF,metric),       borderColor:E, backgroundColor:EF, fill:true, spanGaps:false, borderWidth:2.5 }
+    ]},
+    options: baseOpts(yL, mn, mx)
+  });
+}
+buildRead('scale');
+function setReadMetric(btn,m){ document.querySelectorAll('#reading .mbtn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); buildRead(m); }
+
+// ── STAR MATH MAIN CHART ───────────────────────────────────────────────
+let mathChart;
+function buildMath(metric) {
+  const yL = {scale:'Scale Score',pct:'Percentile Rank',ge:'Grade Equivalent'}[metric];
+  const [mn,mx] = metric==='pct' ? [0,100] : [undefined,undefined];
+  if (mathChart) mathChart.destroy();
+  mathChart = new Chart(document.getElementById('mathChart'), {
+    type:'line',
+    data:{ labels:GL, datasets:[
+      { label:'Justin', data:getM(jMF,metric), borderColor:J, backgroundColor:JF, fill:true, spanGaps:false, borderWidth:2.5 },
+      { label:'Ethan',  data:getM(eMF,metric), borderColor:E, backgroundColor:EF, fill:true, spanGaps:false, borderWidth:2.5 }
+    ]},
+    options: baseOpts(yL, mn, mx)
+  });
+}
+buildMath('scale');
+function setMathMetric(btn,m){ document.querySelectorAll('#math .mbtn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); buildMath(m); }
+
+// ── REPORT CARD CHARTS ─────────────────────────────────────────────────
+const rcOpts = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{ legend:{ display:true, position:'bottom', labels:{font:{size:10},boxWidth:12} }, tooltip:{mode:'index',intersect:false} },
+  scales:{
+    x:{ ticks:{font:{size:9},maxRotation:35}, grid:{display:false} },
+    y:{ min:1, max:4, ticks:{font:{size:10},stepSize:1}, grid:{color:'#f1f5f9'},
+        title:{display:true,text:'Mark (1–4)',font:{size:10}} }
+  }
+};
+
+new Chart(document.getElementById('jRCChart'), {
+  type:'bar',
+  data:{ labels:rcSubs, datasets:[
+    { label:'Dec (M1)', data:jRC.m1, backgroundColor:'rgba(59,130,246,0.35)', borderColor:J, borderWidth:1.5 },
+    { label:'Mar (M2)', data:jRC.m2, backgroundColor:'rgba(59,130,246,0.72)', borderColor:J, borderWidth:1.5 }
+  ]},
+  options: rcOpts
+});
+
+new Chart(document.getElementById('eRCChart'), {
+  type:'bar',
+  data:{ labels:rcSubs, datasets:[
+    { label:'Dec (M1)', data:eRC.m1, backgroundColor:'rgba(34,197,94,0.35)', borderColor:E, borderWidth:1.5 },
+    { label:'Mar (M2)', data:eRC.m2, backgroundColor:'rgba(34,197,94,0.72)', borderColor:E, borderWidth:1.5 }
+  ]},
+  options: rcOpts
+});
+
+// ── RC DETAIL BARS ─────────────────────────────────────────────────────
+function buildRCDetail(id, data, color) {
+  const el = document.getElementById(id);
+  rcSubs.forEach((s,i) => {
+    const m1=data.m1[i], m2=data.m2[i];
+    const arrow = m2>m1 ? ' <span style="color:#22c55e">↑</span>' : m2<m1 ? ' <span style="color:#ef4444">↓</span>' : '';
+    el.innerHTML += `<div class="subj-row">
+      <div class="subj-hdr">
+        <span class="subj-name">${s}</span>
+        <span class="subj-scores">${m1.toFixed(1)} → <strong>${m2.toFixed(1)}</strong>${arrow}</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-m1" style="width:${(m1/4)*100}%;background:${color};opacity:0.3"></div>
+        <div class="bar-m2" style="width:${(m2/4)*100}%;background:${color};opacity:0.65"></div>
+      </div>
+    </div>`;
+  });
+}
+buildRCDetail('jRCDetail', jRC, '#3b82f6');
+buildRCDetail('eRCDetail', eRC, '#22c55e');
+
+// ── HISTORY TABLES ────────────────────────────────────────────────────
+function buildHistTable(id, rows, labels, color) {
+  const el = document.getElementById(id);
+  let h = `<table style="width:100%;border-collapse:collapse;font-size:.78rem">
+    <tr style="color:#94a3b8;font-size:.72rem;font-weight:600">
+      <td style="padding:4px 6px">Period</td>
+      <td style="padding:4px 6px;text-align:right">Scale</td>
+      <td style="padding:4px 6px;text-align:right">%ile</td>
+      <td style="padding:4px 6px;text-align:right">GE</td>
+    </tr>`;
+  rows.forEach((d,i) => {
+    const lbl = labels ? labels[i] : GL[d.idx];
+    h += `<tr style="border-bottom:1px solid #f8fafc">
+      <td style="padding:4px 6px;color:#475569">${lbl}</td>
+      <td style="padding:4px 6px;text-align:right;font-weight:600;color:${color}">${d.scale}</td>
+      <td style="padding:4px 6px;text-align:right">${d.pct}</td>
+      <td style="padding:4px 6px;text-align:right">${d.ge}</td>
+    </tr>`;
+  });
+  el.innerHTML = h + '</table>';
+}
+
+buildHistTable('jReadTable', jR, GL, '#3b82f6');
+buildHistTable('eReadTable', eR, null, '#22c55e');
+buildHistTable('jMathTable', jM, null, '#3b82f6');
+buildHistTable('eMathTable', eM, null, '#22c55e');
+
+// ── NYS CHART ─────────────────────────────────────────────────────────
+new Chart(document.getElementById('nysChart'), {
+  type:'bar',
+  data:{
+    labels:['ELA','Math'],
+    datasets:[{
+      label:"Justin's Score",
+      data:[454,482],
+      backgroundColor:['rgba(59,130,246,0.65)','rgba(34,197,94,0.65)'],
+      borderColor:['#3b82f6','#22c55e'],
+      borderWidth:2,
+      borderRadius:6
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>`Score: ${ctx.raw}`}},
+      annotation:{}
+    },
+    scales:{
+      y:{
+        min:350, max:510,
+        ticks:{font:{size:10}},
+        grid:{color:'#f1f5f9'},
+        title:{display:true,text:'Scale Score',font:{size:10}}
+      },
+      x:{ticks:{font:{size:12,weight:'600'}},grid:{display:false}}
+    }
+  }
+});
+
+// ── REPORT CARD DOCUMENTS ─────────────────────────────────────────────
+// To add a new report card:
+//   1. Upload the PDF to the "docs/" folder in this GitHub repo
+//   2. Add a new entry below following the same format
+//   3. kid: 'j' = Justin, 'e' = Ethan
+const rcDocs = [
+  { kid:'j', name:'Justin · Grade 4', period:'March 2026',     file:'docs/justin-gr4-march-2026.pdf' },
+  { kid:'e', name:'Ethan · Grade 2',  period:'March 2026',     file:'docs/ethan-gr2-march-2026.pdf'  },
+];
+
+(function(){
+  const el = document.getElementById('rcDocs');
+  if (!el) return;
+  const grid = document.createElement('div');
+  grid.className = 'doc-grid';
+  rcDocs.forEach(d => {
+    const a = document.createElement('a');
+    a.className = 'doc-card';
+    a.href = d.file;
+    a.target = '_blank';
+    a.download = '';
+    a.innerHTML = `
+      <div class="doc-icon ${d.kid}">📄</div>
+      <div class="doc-meta">
+        <div class="doc-name">${d.name}</div>
+        <div class="doc-period">${d.period}</div>
+      </div>`;
+    grid.appendChild(a);
+  });
+  el.appendChild(grid);
+})();
+
+// ── COMMENT TOGGLES ───────────────────────────────────────────────────
+function setJComments(btn, period) {
+  document.querySelectorAll('#jComments-m1, #jComments-m2').forEach(el => el.style.display = 'none');
+  document.getElementById('jComments-' + period).style.display = 'block';
+  btn.closest('.toggle-row').querySelectorAll('.mbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setEComments(btn, period) {
+  document.querySelectorAll('#eComments-m1, #eComments-m2').forEach(el => el.style.display = 'none');
+  document.getElementById('eComments-' + period).style.display = 'block';
+  btn.closest('.toggle-row').querySelectorAll('.mbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── TAB SWITCHER ──────────────────────────────────────────────────────
+function showTab(btn, id) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
